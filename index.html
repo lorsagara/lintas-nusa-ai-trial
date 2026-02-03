@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lintas Nusa AI Studio</title>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet"/>
+
+<style>
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+.code {
+  background:#0f172a;
+  color:#38bdf8;
+  padding:16px;
+  border-radius:12px;
+  font-size:11px;
+  white-space:pre-wrap;
+  line-height:1.6;
+}
+.step { border-left:4px solid #e5e7eb; padding-left:16px; }
+.step.active { border-color:#2563eb; }
+.step.done { border-color:#16a34a; }
+</style>
+</head>
+
+<body class="bg-slate-50">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ================= TRIAL CONFIG ================= */
+const TRIAL_DAYS = 3;
+
+/* ================= STYLE & MOOD ================= */
+const STYLE_FAMILIES = {
+  "Anime & Japanese-Inspired Animation": [
+    "Modern Cinematic Anime",
+    "Classic Ghibli-Inspired Anime",
+    "Shonen Action Anime",
+    "Dark Fantasy Anime",
+    "Slice of Life Anime"
+  ],
+  "Handcrafted & Stop Motion Animation": [
+    "Claymation",
+    "Paper Cutout Animation",
+    "Miniature Diorama World"
+  ]
+};
+
+const MOODS = [
+  "Imut / Cute",
+  "Hangat / Cozy",
+  "Melankolis",
+  "Heroik",
+  "Magis",
+  "Dark"
+];
+
+const App = () => {
+
+/* ================= STATE ================= */
+const [step, setStep] = useState(1);
+const [synopsis, setSynopsis] = useState("");
+const [styleFamily, setStyleFamily] = useState("");
+const [subStyle, setSubStyle] = useState("");
+const [mood, setMood] = useState("");
+const [numScenes, setNumScenes] = useState(4);
+const [payload, setPayload] = useState(null);
+const [history, setHistory] = useState([]);
+
+/* ================= TRIAL ================= */
+const [trialExpired, setTrialExpired] = useState(false);
+const [trialRemaining, setTrialRemaining] = useState(null);
+
+useEffect(() => {
+  let start = localStorage.getItem("LN_TRIAL_START");
+  if (!start) {
+    start = Date.now();
+    localStorage.setItem("LN_TRIAL_START", start);
+  }
+  const elapsed = Date.now() - Number(start);
+  const max = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
+  if (elapsed > max) {
+    setTrialExpired(true);
+    setTrialRemaining(0);
+  } else {
+    setTrialRemaining(Math.ceil((max - elapsed)/(24*60*60*1000)));
+  }
+
+  const saved = JSON.parse(localStorage.getItem("LN_STORY_HISTORY") || "[]");
+  setHistory(saved);
+}, []);
+
+/* ================= BUILD PAYLOAD ================= */
+const buildPayload = () => {
+  if (trialExpired) return;
+
+  const data = {
+    project_type: "Storyboard & Animation Prompt",
+    story_core: { synopsis },
+    style: {
+      family: styleFamily,
+      sub_style: subStyle,
+      mood
+    },
+    narration: "omniscient_storyteller",
+    voice_over_rules: {
+      per_scene: true,
+      max_words: 8,
+      storytelling_required: true,
+      follows_storyboard: true
+    },
+    character: null,
+    storyboard: {
+      scenes: numScenes,
+      duration_per_scene: "6 seconds"
+    }
+  };
+
+  setPayload(data);
+
+  const entry = {
+    id: Date.now(),
+    title: synopsis.split(" ").slice(0,5).join(" ") + "...",
+    created_at: new Date().toLocaleString(),
+    payload: data
+  };
+
+  const updated = [entry, ...history];
+  setHistory(updated);
+  localStorage.setItem("LN_STORY_HISTORY", JSON.stringify(updated));
+};
+
+/* ================= UI ================= */
+return (
+<div className="max-w-4xl mx-auto p-6 space-y-8">
+
+{/* TRIAL INFO (KECIL, TIDAK MENGGANGGU) */}
+<p className="text-xs text-slate-500">
+{trialExpired
+  ? "🔒 Trial berakhir"
+  : `🟡 Trial — ${trialRemaining} hari tersisa`}
+</p>
+
+<h1 className="text-2xl font-black">Lintas Nusa AI Studio</h1>
+
+{/* STEP 1 */}
+<div className={`step ${step===1?'active':'done'}`}>
+<h2 className="font-bold">1. Story Core</h2>
+<textarea
+className="w-full p-3 border rounded"
+value={synopsis}
+onChange={e=>setSynopsis(e.target.value)}
+/>
+<button onClick={()=>setStep(2)} disabled={!synopsis}
+className="mt-2 bg-blue-600 text-white px-4 py-2 rounded">
+Lanjut
+</button>
+</div>
+
+{/* STEP 2 */}
+{step>=2 && (
+<div className={`step ${step===2?'active':'done'}`}>
+<h2 className="font-bold">2. Style & Mood</h2>
+
+<select className="w-full p-2 border rounded mb-2"
+value={styleFamily}
+onChange={e=>setStyleFamily(e.target.value)}>
+<option value="">Style Family</option>
+{Object.keys(STYLE_FAMILIES).map(f=>(
+<option key={f} value={f}>{f}</option>
+))}
+</select>
+
+{styleFamily && (
+<select className="w-full p-2 border rounded mb-2"
+value={subStyle}
+onChange={e=>setSubStyle(e.target.value)}>
+<option value="">Sub Style</option>
+{STYLE_FAMILIES[styleFamily].map(s=>(
+<option key={s} value={s}>{s}</option>
+))}
+</select>
+)}
+
+<select className="w-full p-2 border rounded"
+value={mood}
+onChange={e=>setMood(e.target.value)}>
+<option value="">Mood</option>
+{MOODS.map(m=>(
+<option key={m} value={m}>{m}</option>
+))}
+</select>
+
+<button onClick={()=>setStep(3)}
+disabled={!subStyle || !mood}
+className="mt-2 bg-blue-600 text-white px-4 py-2 rounded">
+Lanjut
+</button>
+</div>
+)}
+
+{/* STEP 3 */}
+{step>=3 && (
+<div className={`step ${step===3?'active':'done'}`}>
+<h2 className="font-bold">3. Storyboard</h2>
+<select
+className="w-full p-2 border rounded"
+value={numScenes}
+onChange={e=>setNumScenes(Number(e.target.value))}>
+{[3,4,5,6].map(n=>(
+<option key={n} value={n}>{n} Scene</option>
+))}
+</select>
+
+<button onClick={()=>setStep(4)}
+className="mt-2 bg-blue-600 text-white px-4 py-2 rounded">
+Lanjut
+</button>
+</div>
+)}
+
+{/* STEP 4 */}
+{step>=4 && (
+<div className="step active">
+<h2 className="font-bold">4. Build Payload</h2>
+<button
+onClick={buildPayload}
+disabled={trialExpired}
+className={`px-6 py-3 rounded font-bold ${
+  trialExpired
+    ? "bg-gray-300 cursor-not-allowed"
+    : "bg-green-600 text-white"
+}`}>
+Build Payload
+</button>
+
+{payload && (
+<pre className="code mt-4">
+{JSON.stringify(payload, null, 2)}
+</pre>
+)}
+</div>
+)}
+
+{/* HISTORY */}
+{history.length > 0 && (
+<div>
+<h2 className="font-bold mt-6">Story History</h2>
+{history.map(h=>(
+<div key={h.id} className="text-xs text-slate-600">
+• {h.title}
+</div>
+))}
+</div>
+)}
+
+</div>
+);
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

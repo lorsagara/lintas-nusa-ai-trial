@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lintas Nusa AI Studio — Modular Creative Builder v8.0</title>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+.step-container { border-left:3px solid #e5e7eb; padding-left:24px; position:relative }
+.step-container.active { border-color:#2563eb }
+.step-container.done { border-color:#16a34a; opacity:.7 }
+.step-container.pending { opacity:.4; pointer-events:none }
+.step-number {
+  position:absolute; left:-14px; top:0;
+  width:24px; height:24px; border-radius:50%;
+  background:#e5e7eb; display:flex;
+  align-items:center; justify-content:center;
+  font-size:10px; font-weight:800;
+}
+.active .step-number { background:#2563eb; color:#fff }
+.done .step-number { background:#16a34a; color:#fff }
+.code-raw {
+  background:#0f172a; color:#38bdf8;
+  font-family:Courier New, monospace;
+  border-radius:12px; padding:16px;
+  font-size:11px; line-height:1.6;
+  border:1px solid #1e293b;
+  white-space:pre-wrap;
+}
+</style>
+</head>
+
+<body class="bg-[#F8FAFC] text-slate-900">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ================= CONFIG ================= */
+const STYLE_FAMILIES = {
+  "Anime & Japanese Animation": [
+    "Modern Cinematic Anime (Makoto Shinkai Style)",
+    "Studio Ghibli Nostalgic Style",
+    "90s Retro Hand-Drawn Anime",
+    "Shonen Action Anime"
+  ]
+};
+
+const MOODS = [
+  "Imut / Cute","Hangat / Cozy","Melankolis",
+  "Dark","Heroik","Magis","Epik"
+];
+
+const Icon = ({ name }) => {
+  useEffect(()=>{ if(window.lucide) window.lucide.createIcons() },[]);
+  return <i data-lucide={name} className="w-4 h-4"></i>;
+};
+
+const TRIAL_DAYS = 3;
+
+const App = () => {
+
+  /* ===== TRIAL ===== */
+  const [trialExpired,setTrialExpired]=useState(false);
+  const [trialRemaining,setTrialRemaining]=useState(null);
+
+  useEffect(()=>{
+    let start=localStorage.getItem("LN_TRIAL_V8");
+    if(!start){
+      start=Date.now();
+      localStorage.setItem("LN_TRIAL_V8",start);
+    }
+    const elapsed=Date.now()-Number(start);
+    const max=TRIAL_DAYS*24*60*60*1000;
+    if(elapsed>max){
+      setTrialExpired(true); setTrialRemaining(0);
+    } else {
+      setTrialRemaining(Math.ceil((max-elapsed)/(24*60*60*1000)));
+    }
+  },[]);
+
+  /* ===== ORIGINAL STATE ===== */
+  const [step,setStep]=useState(1);
+  const [synopsis,setSynopsis]=useState("");
+  const [styleFamily,setStyleFamily]=useState("Anime & Japanese Animation");
+  const [subStyle,setSubStyle]=useState(STYLE_FAMILIES["Anime & Japanese Animation"][0]);
+  const [mood,setMood]=useState("Hangat / Cozy");
+  const [useCharacter,setUseCharacter]=useState(true);
+  const [character,setCharacter]=useState({name:"",role:""});
+  const [numScenes,setNumScenes]=useState(4);
+  const [isProducing,setIsProducing]=useState(false);
+
+  const getStepClass=s=>{
+    if(step===s) return "step-container active";
+    if(step>s) return "step-container done";
+    return "step-container pending";
+  };
+
+  return (
+  <div className="min-h-screen pb-24">
+
+    {/* HEADER */}
+    <header className="bg-white border-b p-5 sticky top-0 flex justify-between items-center">
+      <div className="flex gap-3 items-center">
+        <div className="bg-blue-600 p-2 rounded-xl text-white"><Icon name="star"/></div>
+        <div>
+          <h1 className="font-black text-xl">Lintas Nusa <span className="text-blue-600">AI</span></h1>
+          <p className="text-[9px] tracking-widest text-slate-400">MODULAR CREATIVE BUILDER v8.0</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 bg-blue-50 px-4 py-1.5 rounded-full border">
+        <div className={`w-2 h-2 rounded-full ${trialExpired?'bg-red-500':'bg-green-500'} animate-pulse`}></div>
+        <span className="text-[9px] font-black uppercase">
+          {trialExpired ? "Trial Expired" : `Trial • ${trialRemaining} Hari`}
+        </span>
+      </div>
+    </header>
+
+    {/* MAIN */}
+    <main className="max-w-2xl mx-auto p-8 space-y-12">
+
+      {/* STEP 1 */}
+      <div className={getStepClass(1)}>
+        <div className="step-number">1</div>
+        <h3 className="font-black text-xs uppercase mb-2">Story Core</h3>
+        <textarea
+          className="w-full p-4 border rounded-xl h-32"
+          placeholder="Tuliskan inti cerita..."
+          value={synopsis}
+          onChange={e=>setSynopsis(e.target.value)}
+        />
+        {synopsis && <button onClick={()=>setStep(2)} className="mt-3 bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs">Lanjut</button>}
+      </div>
+
+      {/* STEP 2 */}
+      {step>=2 &&
+      <div className={getStepClass(2)}>
+        <div className="step-number">2</div>
+        <h3 className="font-black text-xs uppercase mb-2">Visual & Mood</h3>
+        <select className="w-full p-3 border rounded mb-2" value={subStyle} onChange={e=>setSubStyle(e.target.value)}>
+          {STYLE_FAMILIES[styleFamily].map(s=><option key={s}>{s}</option>)}
+        </select>
+        <select className="w-full p-3 border rounded" value={mood} onChange={e=>setMood(e.target.value)}>
+          {MOODS.map(m=><option key={m}>{m}</option>)}
+        </select>
+        <button onClick={()=>setStep(3)} className="mt-3 bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs">Lanjut</button>
+      </div>}
+
+      {/* STEP 3 */}
+      {step>=3 &&
+      <div className={getStepClass(3)}>
+        <div className="step-number">3</div>
+        <h3 className="font-black text-xs uppercase mb-2">Identity Mode</h3>
+        <label className="flex items-center gap-2 mb-2">
+          <input type="checkbox" checked={useCharacter} onChange={e=>setUseCharacter(e.target.checked)}/>
+          <span className="text-sm font-bold">Gunakan Karakter</span>
+        </label>
+        {useCharacter &&
+          <input className="w-full p-3 border rounded" placeholder="Nama karakter"
+            value={character.name}
+            onChange={e=>setCharacter({...character,name:e.target.value})}/>
+        }
+        <button onClick={()=>setStep(4)} className="mt-3 bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs">Lanjut</button>
+      </div>}
+
+      {/* STEP 4 */}
+      {step>=4 &&
+      <div className={getStepClass(4)}>
+        <div className="step-number">4</div>
+        <h3 className="font-black text-xs uppercase mb-2">Production Flow</h3>
+        <div className="flex gap-2">
+          {[3,4,5,6].map(n=>(
+            <button key={n} onClick={()=>setNumScenes(n)}
+              className={`flex-1 py-2 rounded-xl border font-black text-xs ${numScenes===n?'bg-blue-600 text-white':'bg-white'}`}>
+              {n} Scene
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>setStep(5)} className="mt-3 bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs">Siapkan Produksi</button>
+      </div>}
+
+      {/* STEP 5 */}
+      {step>=5 &&
+      <div className={getStepClass(5)}>
+        <div className="step-number">5</div>
+        <h3 className="font-black text-xs uppercase mb-4">Final Execution</h3>
+        <button
+          disabled={trialExpired || isProducing}
+          className={`w-full py-6 rounded-3xl font-black uppercase tracking-widest
+            ${trialExpired
+              ? 'bg-slate-200 text-slate-400'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}>
+          {trialExpired ? "Trial Berakhir" : "Mulai Produksi Kreatif"}
+        </button>
+      </div>}
+
+    </main>
+  </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

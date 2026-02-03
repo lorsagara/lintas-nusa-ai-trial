@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lintas Nusa AI Studio — Trial</title>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet"/>
+
+<style>
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+.code {
+  background:#0f172a;
+  color:#38bdf8;
+  padding:16px;
+  border-radius:12px;
+  font-size:11px;
+  white-space:pre-wrap;
+  line-height:1.6;
+}
+.step { border-left:4px solid #e5e7eb; padding-left:16px; }
+.step.active { border-color:#2563eb; }
+.step.done { border-color:#16a34a; }
+.locked { opacity:.45; pointer-events:none; }
+</style>
+</head>
+
+<body class="bg-slate-50">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ================= TRIAL CONFIG ================= */
+const TRIAL_DAYS = 3;
+
+/* ================= STYLE FAMILY (FULL) ================= */
+const STYLE_FAMILIES = {
+  "Anime & Japanese-Inspired Animation": [
+    "Modern Cinematic Anime",
+    "Classic Ghibli-Inspired Anime",
+    "Shonen Action Anime",
+    "Seinen Drama Anime",
+    "Dark Fantasy Anime",
+    "Slice of Life Anime",
+    "Mythological Anime",
+    "Experimental Art Anime"
+  ],
+
+  "Western Stylized 3D Animation": [
+    "Pixar-Style Cinematic 3D",
+    "DreamWorks-Style Character 3D",
+    "Soft Cartoon 3D",
+    "Stylized Low-Detail 3D",
+    "Fantasy 3D Animation"
+  ],
+
+  "Handcrafted & Stop Motion Animation": [
+    "Claymation",
+    "Felt & Fabric Stop Motion",
+    "Paper Cutout Animation",
+    "Miniature Diorama World",
+    "Handmade Toy World"
+  ],
+
+  "Illustrated & Painterly Animation": [
+    "Watercolor Storybook",
+    "Gouache Illustration",
+    "Ink & Line Art Animation",
+    "Crayon & Colored Pencil",
+    "Picture Book Illustration"
+  ],
+
+  "Experimental & Conceptual Animation": [
+    "Surreal Dream Animation",
+    "Abstract Motion Illustration",
+    "Symbolic Visual Narrative",
+    "Minimal Poetic Animation"
+  ]
+};
+
+/* ================= MOOD SYSTEM (FULL) ================= */
+const MOODS = [
+  "Imut / Cute",
+  "Hangat / Cozy",
+  "Tenang / Damai",
+  "Melankolis",
+  "Reflektif",
+  "Penuh Harapan",
+
+  "Heroik",
+  "Epik",
+  "Magis",
+  "Misterius",
+  "Petualangan",
+
+  "Dark",
+  "Suram",
+  "Horror",
+  "Tegang",
+  "Kesepian",
+
+  "Puitis",
+  "Surealis",
+  "Ajaib",
+  "Dreamlike",
+  "Eksperimental"
+];
+
+const App = () => {
+
+/* ================= CORE STATE ================= */
+const [step, setStep] = useState(1);
+const [synopsis, setSynopsis] = useState("");
+const [styleFamily, setStyleFamily] = useState("");
+const [subStyle, setSubStyle] = useState("");
+const [mood, setMood] = useState("");
+
+const [useCharacter, setUseCharacter] = useState(true);
+const [character, setCharacter] = useState({ name:"", role:"" });
+
+const [numScenes, setNumScenes] = useState(4);
+const [payload, setPayload] = useState(null);
+const [history, setHistory] = useState([]);
+
+/* ================= TRIAL STATE ================= */
+const [trialExpired, setTrialExpired] = useState(false);
+const [trialRemaining, setTrialRemaining] = useState(null);
+
+/* ================= INIT ================= */
+useEffect(() => {
+  let start = localStorage.getItem("LN_TRIAL_START");
+  if (!start) {
+    start = Date.now();
+    localStorage.setItem("LN_TRIAL_START", start);
+  }
+
+  const elapsed = Date.now() - Number(start);
+  const max = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
+  if (elapsed > max) {
+    setTrialExpired(true);
+    setTrialRemaining(0);
+  } else {
+    setTrialRemaining(Math.ceil((max - elapsed)/(24*60*60*1000)));
+  }
+
+  const saved = JSON.parse(localStorage.getItem("LN_STORY_HISTORY") || "[]");
+  setHistory(saved);
+}, []);
+
+/* ================= BUILD PAYLOAD ================= */
+const buildPayload = () => {
+  if (trialExpired) return;
+
+  const data = {
+    project_type: "Storyboard & Animation Prompt",
+    story_core: { synopsis },
+
+    style: {
+      family: styleFamily,
+      sub_style: subStyle,
+      mood
+    },
+
+    narration: useCharacter
+      ? "character_driven_storytelling"
+      : "omniscient_storyteller",
+
+    voice_over_rules: {
+      per_scene: true,
+      max_words: 8,
+      storytelling_required: true,
+      follows_storyboard: true
+    },
+
+    character: useCharacter ? character : null,
+
+    storyboard: {
+      scenes: numScenes,
+      duration_per_scene: "6 seconds"
+    }
+  };
+
+  setPayload(data);
+
+  const entry = {
+    id: Date.now(),
+    title: synopsis.split(" ").slice(0,5).join(" ") + "...",
+    created_at: new Date().toLocaleString(),
+    payload: data
+  };
+
+  const updated = [entry, ...history];
+  setHistory(updated);
+  localStorage.setItem("LN_STORY_HISTORY", JSON.stringify(updated));
+};
+
+/* ================= UI ================= */
+return (
+<div className="max-w-5xl mx-auto p-8 space-y-10">
+
+{/* TRIAL BANNER */}
+<div className={`p-4 rounded border ${
+  trialExpired ? "bg-red-50 border-red-200" : "bg-yellow-50 border-yellow-300"
+}`}>
+<p className="font-bold text-sm">
+{trialExpired
+  ? "🔒 Trial berakhir — Upgrade untuk melanjutkan"
+  : `🟡 Trial Mode — ${trialRemaining} hari tersisa`}
+</p>
+</div>
+
+<h1 className="text-3xl font-black">Lintas Nusa AI Studio</h1>
+<p className="text-slate-500 text-sm">
+Trial Version — Full Creative Builder
+</p>
+
+<div className={trialExpired ? "locked" : ""}>
+
+{/* STEP 1 */}
+<div className={`step ${step===1?'active':'done'}`}>
+<h2 className="font-black">1. Story Core</h2>
+<textarea className="w-full p-3 border rounded"
+value={synopsis}
+onChange={e=>setSynopsis(e.target.value)}
+placeholder="Ringkasan cerita..."/>
+<button onClick={()=>setStep(2)} disabled={!synopsis}
+className="mt-3 bg-blue-600 text-white px-4 py-2 rounded font-bold">
+Lanjut
+</button>
+</div>
+
+{/* STEP 2 */}
+{step>=2 && (
+<div className={`step ${step===2?'active':'done'}`}>
+<h2 className="font-black">2. Style & Mood</h2>
+
+<select className="w-full p-3 border rounded mb-2"
+value={styleFamily}
+onChange={e=>setStyleFamily(e.target.value)}>
+<option value="">Pilih Style Family</option>
+{Object.keys(STYLE_FAMILIES).map(f=>(
+<option key={f}>{f}</option>
+))}
+</select>
+
+{styleFamily && (
+<select className="w-full p-3 border rounded mb-2"
+value={subStyle}
+onChange={e=>setSubStyle(e.target.value)}>
+<option value="">Pilih Sub-Style</option>
+{STYLE_FAMILIES[styleFamily].map(s=>(
+<option key={s}>{s}</option>
+))}
+</select>
+)}
+
+<select className="w-full p-3 border rounded"
+value={mood}
+onChange={e=>setMood(e.target.value)}>
+<option value="">Pilih Mood</option>
+{MOODS.map(m=>(
+<option key={m}>{m}</option>
+))}
+</select>
+
+<button onClick={()=>setStep(3)}
+disabled={!subStyle || !mood}
+className="mt-3 bg-blue-600 text-white px-4 py-2 rounded font-bold">
+Lanjut
+</button>
+</div>
+)}
+
+{/* STEP 3 */}
+{step>=3 && (
+<div className={`step ${step===3?'active':'done'}`}>
+<h2 className="font-black">3. Character Mode</h2>
+<label className="flex items-center gap-2 mb-2">
+<input type="checkbox" checked={useCharacter}
+onChange={e=>setUseCharacter(e.target.checked)}/>
+Gunakan Karakter
+</label>
+
+{useCharacter && (
+<input className="w-full p-3 border rounded"
+placeholder="Nama karakter"
+value={character.name}
+onChange={e=>setCharacter({...character,name:e.target.value})}/>
+)}
+
+<button onClick={()=>setStep(4)}
+disabled={useCharacter && !character.name}
+className="mt-3 bg-blue-600 text-white px-4 py-2 rounded font-bold">
+Lanjut
+</button>
+</div>
+)}
+
+{/* STEP 4 */}
+{step>=4 && (
+<div className={`step ${step===4?'active':'done'}`}>
+<h2 className="font-black">4. Storyboard</h2>
+<select className="w-full p-3 border rounded"
+value={numScenes}
+onChange={e=>setNumScenes(e.target.value)}>
+{[3,4,5,6].map(n=>(
+<option key={n}>{n} Scene</option>
+))}
+</select>
+
+<button onClick={()=>setStep(5)}
+className="mt-3 bg-blue-600 text-white px-4 py-2 rounded font-bold">
+Lanjut
+</button>
+</div>
+)}
+
+{/* STEP 5 */}
+{step>=5 && (
+<div className="step active">
+<h2 className="font-black">5. Build Payload</h2>
+<button onClick={buildPayload}
+className="bg-green-600 text-white px-6 py-3 rounded font-black">
+Build Payload
+</button>
+
+{payload && (
+<pre className="code mt-4">
+{JSON.stringify(payload, null, 2)}
+</pre>
+)}
+</div>
+)}
+
+</div>
+
+{/* HISTORY */}
+{history.length > 0 && (
+<div className="step mt-10">
+<h2 className="font-black">📚 Story History</h2>
+{history.map(h => (
+<div key={h.id} className="border rounded p-3 mt-2 bg-white">
+<p className="font-bold text-sm">{h.title}</p>
+<p className="text-xs text-slate-500">{h.created_at}</p>
+</div>
+))}
+</div>
+)}
+
+{/* UPGRADE CTA */}
+{trialExpired && (
+<div className="p-6 bg-slate-900 text-white rounded mt-10">
+<h3 className="font-black text-lg">Upgrade ke Full Version</h3>
+<p className="text-sm opacity-80 mt-1">
+Buka akses tanpa batas waktu & fitur lanjutan.
+</p>
+<a href="https://wa.me/XXXXXXXXXX"
+className="inline-block mt-4 bg-green-500 px-5 py-3 rounded font-black">
+Upgrade Sekarang
+</a>
+</div>
+)}
+
+</div>
+);
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

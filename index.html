@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lintas Nusa AI Studio — Modular Creative Builder</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .code-raw {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      border-radius: 12px;
+      padding: 16px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #1e293b;
+    }
+    /* Simple loader animation */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 3px solid #fff;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    /* Custom scrollbar for better aesthetics */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9; 
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1; 
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8; 
+    }
+  </style>
+</head>
+
+<body class="bg-[#F8FAFC] text-slate-900 pb-20 selection:bg-blue-100 selection:text-blue-900">
+  <div class="max-w-2xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
+
+    <!-- Header (No API Key Input) -->
+    <header class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-row justify-between items-center sticky top-4 z-50 gap-4 transition-all duration-300">
+      <div>
+        <h1 class="font-black text-lg uppercase tracking-tight">Lintas Nusa <span class="text-blue-600">AI Studio</span></h1>
+        <p class="text-[10px] font-bold tracking-widest text-slate-400">STATELESS PROMPT · NO JSX · AUTO AUTH</p>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-black bg-green-100 text-green-700 px-3 py-1 rounded-full border border-green-200 flex items-center gap-1 shrink-0 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          ONLINE
+        </span>
+      </div>
+    </header>
+
+    <!-- Error Message Container -->
+    <div id="errorMsg" class="hidden p-4 bg-red-50 text-red-700 rounded-xl text-sm font-medium border border-red-200 shadow-sm flex items-start gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+      </svg>
+      <span id="errorText"></span>
+    </div>
+
+    <!-- 1. Topic/Story -->
+    <section class="space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <h2 class="font-black text-xs uppercase tracking-widest text-slate-500 flex items-center gap-2">
+        <span class="bg-slate-100 text-slate-600 w-5 h-5 rounded flex items-center justify-center text-[10px]">1</span> 
+        Story Core
+      </h2>
+      <textarea id="synopsis"
+        class="w-full p-4 border border-slate-200 rounded-xl text-sm h-32 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none placeholder:text-slate-400"
+        placeholder="Cukup tulis TOPIK atau inti cerita. Contoh: Petualangan robot kecil mencari bunga terakhir di bumi..."></textarea>
+    </section>
+
+    <!-- 2. Visual Style -->
+    <section class="space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <h2 class="font-black text-xs uppercase tracking-widest text-slate-500 flex items-center gap-2">
+        <span class="bg-slate-100 text-slate-600 w-5 h-5 rounded flex items-center justify-center text-[10px]">2</span>
+        Visual Style
+      </h2>
+      <div class="relative">
+        <select id="style" class="w-full p-4 border border-slate-200 rounded-xl text-sm font-bold bg-white appearance-none cursor-pointer hover:border-blue-300 transition-colors focus:border-blue-500 focus:outline-none">
+          
+          <optgroup label="🧊 3D Animation & CGI">
+            <option>Pixar-Style 3D Animation</option>
+            <option>DreamWorks-Style 3D Animation</option>
+            <option>Disney 3D Storybook Animation</option>
+            <option>Stylized 3D Animation (Soft Shapes)</option>
+            <option>Realistic 3D Cinematic Animation</option>
+            <option>High-End CGI Film Animation</option>
+            <option>Stop-Motion Inspired 3D</option>
+            <option>Claymation-Inspired 3D (CG Clay)</option>
+            <option>Handcrafted 3D Miniature World</option>
+            <option>3D Storybook Diorama Style</option>
+            <option>Low-Poly Stylized 3D World</option>
+            <option>Painterly 3D Animation</option>
+            <option>Warm Cinematic 3D Animation</option>
+            <option>Moody Dramatic 3D Animation</option>
+          </optgroup>
+
+          <optgroup label="🧵 Handmade & Craft (Tactile)">
+            <option>Plasticine Claymation Style</option>
+            <option>Felted Wool Stop-Motion</option>
+            <option>Handcrafted Paper Cutout</option>
+            <option>Origami Paper World</option>
+            <option>Pop-Up Book Paper Craft</option>
+            <option>Puppet Miniature Stage</option>
+            <option>Fabric / Textile Art</option>
+            <option>Embroidery Stitch Illustration</option>
+            <option>Sand Art Animation</option>
+            <option>Wooden Toy Diorama</option>
+          </optgroup>
+
+          <optgroup label="🎨 Illustration & Painterly">
+            <option>Watercolor Storybook Illustration</option>
+            <option>Gouache Flat Illustration</option>
+            <option>Oil Painting Masterpiece</option>
+            <option>Ink & Line Art Illustration</option>
+            <option>Charcoal Sketch Drawing</option>
+            <option>Pastel Chalk Illustration</option>
+            <option>Vintage Lithograph Print</option>
+            <option>Etching / Engraving Style</option>
+            <option>Art Nouveau Illustration</option>
+            <option>Children’s Picture Book Art</option>
+          </optgroup>
+
+          <optgroup label="✏️ 2D / Anime / Drawn">
+            <option>90s Retro Hand-Drawn Anime</option>
+            <option>Modern Cinematic Anime</option>
+            <option>Dark Fantasy Seinen</option>
+            <option>Slice of Life Soft Anime</option>
+            <option>Folklore Myth Anime</option>
+            <option>Minimalist Line Anime</option>
+            <option>Storyboard Sketch Style</option>
+            <option>Manga Panel Illustration</option>
+          </optgroup>
+
+          <optgroup label="🎥 Cinematic / Film Look">
+            <option>Film Noir Black & White</option>
+            <option>Gritty Realism Cinematic</option>
+            <option>Historical Epic Cinematic</option>
+            <option>Natural Documentary Look</option>
+            <option>Low-Light Drama Film</option>
+            <option>Soft Lens Period Film</option>
+            <option>High Contrast Studio Lighting</option>
+            <option>Static Wide Shot Cinema</option>
+          </optgroup>
+
+          <optgroup label="🧊 Stylized & Experimental">
+            <option>Silhouette Storytelling Style</option>
+            <option>Double Exposure Visual</option>
+            <option>Minimalist Color Block</option>
+            <option>Dreamlike Surreal Illustration</option>
+            <option>Abstract Narrative Shapes</option>
+            <option>Shadow-Heavy Expressionism</option>
+          </optgroup>
+
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <!-- 3. Mood -->
+      <section class="space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <h2 class="font-black text-xs uppercase tracking-widest text-slate-500 flex items-center gap-2">
+          <span class="bg-slate-100 text-slate-600 w-5 h-5 rounded flex items-center justify-center text-[10px]">3</span>
+          Mood
+        </h2>
+        <div class="relative">
+          <select id="mood" class="w-full p-4 border border-slate-200 rounded-xl text-sm font-bold bg-white appearance-none cursor-pointer hover:border-blue-300 transition-colors focus:border-blue-500 focus:outline-none">
+            <option>Hangat / Cozy</option>
+            <option>Melankolis</option>
+            <option>Dark</option>
+            <option>Heroik</option>
+            <option>Magis</option>
+            <option>Tense / Suspenseful</option>
+          </select>
+           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Scene Count -->
+      <section class="space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <h2 class="font-black text-xs uppercase tracking-widest text-slate-500 flex items-center gap-2">
+          <span class="bg-slate-100 text-slate-600 w-5 h-5 rounded flex items-center justify-center text-[10px]">4</span>
+          Scene Count
+        </h2>
+        <div class="relative">
+          <select id="scenes" class="w-full p-4 border border-slate-200 rounded-xl text-sm font-bold bg-white appearance-none cursor-pointer hover:border-blue-300 transition-colors focus:border-blue-500 focus:outline-none">
+            <option value="3">3 Scene</option>
+            <option value="4">4 Scene</option>
+            <option value="5">5 Scene</option>
+            <option value="6" selected>6 Scene</option>
+            <option value="8">8 Scene</option>
+            <option value="12">12 Scene</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <button id="generateBtn"
+      class="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] transition-all text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-blue-200 flex justify-center items-center text-sm">
+      Produce Storyboard
+    </button>
+
+    <section id="outputWrap" class="hidden space-y-6 pt-6 border-t border-slate-200">
+      <div class="flex justify-between items-end">
+        <h2 class="font-black text-xs uppercase tracking-widest text-slate-500">Output Result</h2>
+        <button
+            id="toggleRaw"
+            class="text-[10px] font-bold uppercase tracking-widest text-slate-400 border border-slate-200 px-4 py-2 rounded-full hover:text-slate-600 hover:border-slate-300 transition-all bg-white"
+        >
+            Lihat Output Teknis (Opsional)
+        </button>
+      </div>
+
+      <pre id="output" class="code-raw hidden"></pre>
+      
+      <div id="helperArea"></div> 
+    </section>
+
+  </div>
+
+<script>
+/* ================= SAFE LOGIC ENGINE ================= */
+// API Key is automatically provided by the environment
+const apiKey = ""; 
+
+const btn = document.getElementById("generateBtn");
+const outputWrap = document.getElementById("outputWrap");
+const output = document.getElementById("output");
+const helperArea = document.getElementById("helperArea");
+const errorMsg = document.getElementById("errorMsg");
+const errorText = document.getElementById("errorText");
+const toggleRaw = document.getElementById("toggleRaw");
+
+// Toggle Logic
+toggleRaw.addEventListener("click", () => {
+  output.classList.toggle("hidden");
+  toggleRaw.innerText = output.classList.contains("hidden")
+    ? "Lihat Output Teknis (Opsional)"
+    : "Sembunyikan Output Teknis";
+});
+
+// Helper for iframe-safe copying
+function copyToClipboard(text, btnElement) {
+    // Modern safe approach first
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+             showCopyFeedback(btnElement);
+        }).catch(err => {
+             fallbackCopy(text, btnElement);
+        });
+    } else {
+        fallbackCopy(text, btnElement);
+    }
+}
+
+function fallbackCopy(text, btnElement) {
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    temp.style.position = "fixed";
+    temp.style.left = "-9999px";
+    temp.style.top = "0";
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    try {
+        document.execCommand("copy");
+        showCopyFeedback(btnElement);
+    } catch (err) {
+        console.error("Unable to copy", err);
+    }
+    document.body.removeChild(temp);
+}
+
+function showCopyFeedback(btnElement) {
+    const originalText = btnElement.textContent;
+    btnElement.innerHTML = `<span class="flex items-center gap-1">Disalin! <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>`;
+    btnElement.classList.add("bg-green-100", "text-green-700", "border-green-300");
+    btnElement.classList.remove("bg-white", "border-slate-200");
+    
+    setTimeout(() => {
+        btnElement.textContent = originalText;
+        btnElement.classList.remove("bg-green-100", "text-green-700", "border-green-300");
+        btnElement.classList.add("bg-white", "border-slate-200");
+    }, 2000);
+}
+
+function showError(msg) {
+    errorText.textContent = msg;
+    errorMsg.classList.remove("hidden");
+    // Scroll to error
+    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function hideError() {
+    errorMsg.classList.add("hidden");
+    errorText.textContent = "";
+}
+
+btn.addEventListener("click", async () => {
+  const synopsis = document.getElementById("synopsis").value.trim();
+  const style = document.getElementById("style").value;
+  const mood = document.getElementById("mood").value;
+  const scenes = document.getElementById("scenes").value;
+
+  // === Validation ===
+  if (!synopsis) {
+    showError("Mohon isi topik atau cerita terlebih dahulu.");
+    return;
+  }
+  
+  hideError();
+
+  // Reset UI
+  btn.innerHTML = '<div class="spinner"></div> Generating Storyboard...';
+  btn.disabled = true;
+  outputWrap.classList.add("hidden");
+  output.classList.add("hidden"); 
+  toggleRaw.innerText = "Lihat Output Teknis (Opsional)";
+  helperArea.innerHTML = ""; 
+
+  // ===== ULTIMATE SYSTEM PROMPT (FIXED FOR STATELESS GENERATORS) =====
+  const systemPrompt = `
+YOU ARE: PROFESSIONAL VISUAL STORYBOARD ENGINE (TOPIC-SAFE · STYLE-AWARE)
+
+CORE ROLE
+- You convert a TOPIC or STORY into a clean, causal storyboard.
+- If input is ONLY a TOPIC, expand using WELL-KNOWN CANONICAL FACTS or creative logic.
+- You NEVER invent morals, lessons, symbolism, destiny, or philosophy.
+- NO metaphor. NO poetry. NO internal thoughts.
+
+GLOBAL RULES
+- Every scene is a PHYSICAL, VISUAL EVENT.
+- Scene N+1 MUST logically happen because Scene N.
+- No scene may reset the world.
+- No abstract language.
+
+================ GLOBAL WORLD & CHARACTER LOCK (MANDATORY) =================
+
+GLOBAL WORLD LOCK:
+- ALL scenes take place in the SAME continuous world.
+- Location, environment, climate, and architectural style MUST remain consistent.
+- The world scale is grounded, human-sized, and modest.
+- Time may progress naturally, but the LOCATION and WORLD IDENTITY must remain recognizable.
+
+DYNAMIC CHARACTER ANCHOR (CRITICAL):
+1. IDENTIFY the Main Character from the user's topic.
+2. DEFINE their physical traits immediately (Species/Type, Body Shape, Clothing, Features).
+3. LOCK these traits for the entire storyboard.
+   - Example: If user says "Robot", define "Small rusty robot with one blue eye". Lock this appearance.
+   - Example: If user says "Cat", define "Fluffy orange tabby cat". Lock this appearance.
+
+CHARACTER LOCK RULES:
+- The defined character MUST be the SAME physical entity across all scenes.
+- Do NOT redesign, reinterpret, or visually "upgrade" characters between scenes.
+- Body scale, facial structure, and material style must persist.
+- Clothing may age/wear, but must be recognizable.
+
+VIOLATION OF ANY LOCK IS NOT ALLOWED.
+
+================ STYLE ADAPTATION & CAMERA MAPS =================
+
+You MUST adapt camera and lighting behavior to the selected STYLE.
+
+IF STYLE is Pixar-Style 3D Animation:
+- Camera: medium-wide cinematic shots, gentle depth of field
+- Lighting: soft global illumination, warm key light, subtle rim light
+- Mood: lively, emotional, film-like
+
+[GENERIC STYLE LOGIC APPLIED TO ALL STYLES]
+
+================ IMAGE PROMPT GENERATION (STATELESS FIX) =================
+
+IMPORTANT: Image generators (like Midjourney/SD) DO NOT REMEMBER previous prompts.
+You MUST treat every prompt as a STANDALONE description.
+
+FOR EACH IMAGE PROMPT — MANDATORY STRUCTURE:
+1. Subject (FULL VISUAL DESCRIPTION REQUIRED. DO NOT say "The same woman". Say "An elderly Indonesian woman with a deeply wrinkled face...")
+2. Action (what is physically happening)
+3. Environment (exact location, terrain, architecture)
+4. Time & Weather (time of day, climate)
+5. Camera (angle, distance, lens feel)
+6. Lighting (source, mood, intensity)
+7. Materials & Textures (fabric, skin, ground, objects)
+8. Atmosphere (dust, fog, wind, humidity)
+
+CRITICAL CONTINUITY RULE:
+- NEVER use phrases like "The same character", "As seen before", "The boy from scene 1".
+- ALWAYS RE-DESCRIBE the character's visual traits fully in every scene to ensure consistency.
+- Example: Instead of "The same robot looks up", write "The small rusty robot with one blue eye looks up".
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "project_title": "",
+  "style_preset": "",
+  "production_mode": [
+    {
+      "scene_number": 1,
+      "t2i": "Full Image Prompt here...",
+      "vo": "Indonesian VO text..."
+    }
+  ]
+}
+`;
+
+  const userPrompt = `
+TOPIC_OR_STORY: ${synopsis}
+STYLE: ${style}
+MOOD: ${mood}
+SCENES: ${scenes}
+`;
+
+  try {
+    const data = await callGeminiSafe(userPrompt, systemPrompt, apiKey);
+    
+    // 1. Set Raw JSON (Hidden by default)
+    const jsonString = JSON.stringify(data, null, 2);
+    output.textContent = "// RAW ENGINE OUTPUT (ADVANCED)\n\n" + jsonString;
+
+    // 2. PARSE AND RENDER CARDS
+    if (data.production_mode && Array.isArray(data.production_mode)) {
+      renderCards(data.production_mode);
+    } else {
+        throw new Error("Invalid format received from AI.");
+    }
+    
+    outputWrap.classList.remove("hidden");
+    // Scroll to results
+    outputWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (e) {
+    console.error(e);
+    showError("Connection Failed: " + e.message);
+  } finally {
+    btn.innerHTML = "Produce Storyboard";
+    btn.disabled = false;
+  }
+});
+
+// ===== ROBUST API CALLER WITH FALLBACK =====
+async function callGeminiSafe(userContent, systemContent, currentKey) {
+  // Priority: Latest Preview Model -> Stable Flash -> Stable Pro
+  const models = [
+    "gemini-2.5-flash-preview-09-2025",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest", 
+    "gemini-1.0-pro"
+  ];
+
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      console.log(`Trying model: ${model}...`);
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${currentKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userContent }] }],
+            systemInstruction: { parts: [{ text: systemContent }] },
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || `Status ${res.status}`;
+        
+        // If 404 (Not Found) or 400 (Bad Request usually for model name), try next model
+        if (res.status === 404 || res.status === 400) {
+            console.warn(`Model ${model} failed: ${errorMessage}. Trying next...`);
+            lastError = new Error(`Model ${model} not available: ${errorMessage}`);
+            continue; // Try next model in loop
+        }
+        
+        // For other errors (like 429 Quota), throw immediately to stop
+        throw new Error(errorMessage);
+      }
+      
+      const json = await res.json();
+      const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error("No content generated");
+
+      return JSON.parse(text);
+
+    } catch (err) {
+      // If it's the last model, throw the error
+      if (model === models[models.length - 1]) {
+        throw err;
+      }
+      // Otherwise continue to next model
+    }
+  }
+  
+  throw lastError || new Error("All models failed.");
+}
+
+// ===== HELPER RENDERER =====
+function renderCards(scenes) {
+  const helper = document.createElement("div");
+  helper.className = "space-y-6";
+
+  const title = document.createElement("div");
+  title.textContent = "👇 COPY AREA (SAFE)";
+  title.className = "text-[10px] font-black tracking-[0.2em] text-slate-400 mb-4 text-center";
+  helper.appendChild(title);
+
+  scenes.forEach((scene, i) => {
+    const block = document.createElement("div");
+    block.className = "bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow";
+
+    // SCENE LABEL
+    const header = document.createElement("div");
+    header.className = "flex justify-between items-center mb-4 pb-4 border-b border-slate-100";
+    const label = document.createElement("div");
+    label.textContent = `SCENE ${scene.scene_number || (i + 1)}`;
+    label.className = "text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full";
+    header.appendChild(label);
+    block.appendChild(header);
+
+    // IMAGE PROMPT SECTION
+    const imgSection = document.createElement("div");
+    imgSection.className = "mb-6";
+    
+    const imgLabel = document.createElement("div");
+    imgLabel.textContent = "IMAGE PROMPT";
+    imgLabel.className = "text-[10px] font-bold text-slate-400 mb-2 tracking-wide";
+    imgSection.appendChild(imgLabel);
+
+    const imgBox = document.createElement("div");
+    imgBox.textContent = typeof scene.t2i === "string" ? scene.t2i : JSON.stringify(scene.t2i, null, 2);
+    imgBox.className = "bg-slate-900 text-blue-300 p-4 rounded-xl text-[11px] font-mono leading-relaxed mb-3 overflow-x-auto border border-slate-800";
+    imgSection.appendChild(imgBox);
+
+    const imgBtn = document.createElement("button");
+    imgBtn.textContent = "Salin Image Prompt";
+    imgBtn.className = "text-[10px] font-bold px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors w-full sm:w-auto active:bg-slate-100";
+    imgBtn.onclick = () => copyToClipboard(imgBox.textContent, imgBtn);
+    imgSection.appendChild(imgBtn);
+    
+    block.appendChild(imgSection);
+
+    // VOICE OVER SECTION
+    const voSection = document.createElement("div");
+    
+    const voLabel = document.createElement("div");
+    voLabel.textContent = "VOICE OVER (INDONESIAN)";
+    voLabel.className = "text-[10px] font-bold text-slate-400 mb-2 tracking-wide";
+    voSection.appendChild(voLabel);
+
+    const voBox = document.createElement("div");
+    voBox.textContent = scene.vo || "No voice over generated.";
+    voBox.className = "bg-amber-50 border border-amber-100 text-amber-800 p-4 rounded-xl text-sm font-medium italic mb-3 leading-relaxed";
+    voSection.appendChild(voBox);
+
+    const voBtn = document.createElement("button");
+    voBtn.textContent = "Salin VO";
+    voBtn.className = "text-[10px] font-bold px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors w-full sm:w-auto active:bg-slate-100";
+    voBtn.onclick = () => copyToClipboard(voBox.textContent, voBtn);
+    voSection.appendChild(voBtn);
+
+    block.appendChild(voSection);
+    helper.appendChild(block);
+  });
+
+  helperArea.appendChild(helper);
+}
+</script>
+
+</body>
+</html>
+
+

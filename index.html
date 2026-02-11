@@ -8,6 +8,11 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Fonts: Lora (Serif) & Courier Prime (Typewriter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
     <!-- Babel for JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
@@ -22,31 +27,78 @@
     }
     </script>
 
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Lora"', 'serif'],
+                        mono: ['"Courier Prime"', 'monospace'],
+                    },
+                    colors: {
+                        paper: {
+                            50: '#FAF9F6', 
+                            100: '#F2F0E9',
+                            200: '#E6E2D6',
+                            300: '#D1CCC0',
+                            800: '#5c4d3c',
+                            900: '#2c2420', 
+                        },
+                        stone: {
+                            850: '#292524',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         /* Custom Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+
+        /* Lined Paper Effect */
+        .lined-paper {
+            background-color: transparent;
+            background-image: linear-gradient(transparent 1.9rem, #E5E5E5 1.9rem); 
+            background-size: 100% 2rem;
+            line-height: 2rem;
+            padding-top: 0.2rem;
+        }
+        
+        .dark .lined-paper {
+            background-image: linear-gradient(transparent 1.9rem, #374151 1.9rem);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        
+        body { font-family: 'Lora', serif; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
+<body class="bg-paper-50 text-stone-850 dark:bg-[#1a1614] dark:text-stone-300 transition-colors duration-500">
     
-    <!-- Root Container -->
     <div id="root"></div>
 
-    <!-- Application Script -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
             Play, Pause, Download, Trash2, History, Settings, 
             Volume2, Mic, FileText, Check, AlertCircle, Loader2,
-            Moon, Sun, RefreshCw, Layers, FileAudio
+            Moon, Sun, RefreshCw, Layers, FileAudio, Sparkles, PenTool, Zap, 
+            Smile, Frown, Flame, Heart, Skull, Speaker
         } from 'lucide-react';
 
         // ------------------------------------------------------------------
-        // 1. LOGIC LAYER & API HANDLER
+        // 1. DATA & CONFIG
         // ------------------------------------------------------------------
 
         const API_CONFIG = {
@@ -55,74 +107,76 @@
         };
 
         const VOICES = [
-            { name: "Kore", gender: "Female", style: "Calm" },
-            { name: "Fenrir", gender: "Male", style: "Deep" },
-            { name: "Puck", gender: "Male", style: "Energetic" },
-            { name: "Zephyr", gender: "Female", style: "Soft" },
-            { name: "Charon", gender: "Male", style: "Authoritative" },
-            { name: "Aoede", gender: "Female", style: "Elegant" }
+            { name: "Kore", gender: "Female", style: "Calm", desc: "Soothing & Balanced" },
+            { name: "Fenrir", gender: "Male", style: "Deep", desc: "Rich & Resonant" },
+            { name: "Puck", gender: "Male", style: "Energetic", desc: "Playful & Dynamic" },
+            { name: "Zephyr", gender: "Female", style: "Soft", desc: "Gentle & Whispery" },
+            { name: "Charon", gender: "Male", style: "Authoritative", desc: "Strong & Professional" },
+            { name: "Aoede", gender: "Female", style: "Elegant", desc: "Refined & Poised" }
         ];
 
+        // Expanded Context Modes
         const CONTEXT_MODES = {
-            default: "Read the text clearly and naturally.",
-            podcast: "Speak as a podcast host. Engaging, conversational, and dynamic tone.",
-            advertisement: "Speak persuasively and enthusiastically, like a radio commercial.",
-            storytelling: "Narrate with emotion and dramatic pacing, like reading an audiobook.",
-            documentary: "Speak in a serious, informative, and calm documentary narration style.",
-            meditation: "Speak very slowly, softly, and calmly for a guided meditation.",
-            gaming: "Speak like a fantasy game character with high energy and dramatic flair."
+            default: "Read naturally and clearly.",
+            podcast: "Speak as a charismatic podcast host. Engaging, conversational, and dynamic.",
+            news: "Speak as a professional news anchor. Formal, clear, and authoritative delivery.",
+            storytelling: "Narrate like an audiobook reader. Dramatic pacing and immersive storytelling.",
+            advertisement: "Speak persuasively and enthusiastically, like a high-energy commercial.",
+            meditation: "Speak very slowly, softly, and breathily for a guided mindfulness session.",
+            horror: "Speak in a tense, eerie, and suspenseful manner suitable for a horror story.",
+            asmr: "Speak in a very soft, close-up whisper for ASMR tingling effect.",
+            motivational: "Speak with power, passion, and inspiration to motivate the listener.",
+            educational: "Speak clearly, slowly, and articulately for an educational tutorial.",
+            game_hero: "Speak like a brave and determined video game protagonist.",
+            game_villain: "Speak with a menacing, dark, and calculating tone like a villain."
         };
 
-        // --- Audio Utility: Convert Raw PCM16 to WAV ---
+        // New Emotion/Tone Options
+        const EMOTIONS = [
+            { id: "neutral", label: "Neutral", icon: <Volume2 size={14}/> },
+            { id: "happy", label: "Happy / Cheerful", icon: <Smile size={14}/> },
+            { id: "sad", label: "Sad / Melancholic", icon: <Frown size={14}/> },
+            { id: "angry", label: "Angry / Furious", icon: <Flame size={14}/> },
+            { id: "excited", label: "Excited / Hype", icon: <Zap size={14}/> },
+            { id: "whisper", label: "Whispering", icon: <Volume2 size={14} className="opacity-50"/> },
+            { id: "scared", label: "Terrified", icon: <Skull size={14}/> },
+            { id: "romantic", label: "Romantic / Soft", icon: <Heart size={14}/> },
+            { id: "sarcastic", label: "Sarcastic", icon: <Smile size={14} className="rotate-180"/> },
+            { id: "serious", label: "Serious / Grave", icon: <AlertCircle size={14}/> },
+        ];
+
+        // ------------------------------------------------------------------
+        // 2. UTILITIES
+        // ------------------------------------------------------------------
         const pcmToWav = (pcmData, sampleRate = 24000) => {
             const buffer = new ArrayBuffer(44 + pcmData.length * 2);
             const view = new DataView(buffer);
-
             const writeString = (view, offset, string) => {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
+                for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
             };
-
-            // RIFF identifier
             writeString(view, 0, 'RIFF');
             view.setUint32(4, 36 + pcmData.length * 2, 1);
             writeString(view, 8, 'WAVE');
             writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, 1); // Subchunk1Size
-            view.setUint16(20, 1, 1); // AudioFormat (1 is PCM)
-            view.setUint16(22, 1, 1); // NumChannels (Mono)
-            view.setUint32(24, sampleRate, 1); // SampleRate
-            view.setUint32(28, sampleRate * 2, 1); // ByteRate
-            view.setUint16(32, 2, 1); // BlockAlign
-            view.setUint16(34, 16, 1); // BitsPerSample
+            view.setUint32(16, 16, 1);
+            view.setUint16(20, 1, 1);
+            view.setUint16(22, 1, 1);
+            view.setUint32(24, sampleRate, 1);
+            view.setUint32(28, sampleRate * 2, 1);
+            view.setUint16(32, 2, 1);
+            view.setUint16(34, 16, 1);
             writeString(view, 36, 'data');
             view.setUint32(40, pcmData.length * 2, 1);
-
-            // Write PCM samples
-            for (let i = 0; i < pcmData.length; i++) {
-                view.setInt16(44 + i * 2, pcmData[i], 1);
-            }
-
+            for (let i = 0; i < pcmData.length; i++) view.setInt16(44 + i * 2, pcmData[i], 1);
             return new Blob([view], { type: 'audio/wav' });
         };
 
-        // --- Base64 Utility ---
         const base64ToInt16Array = (base64) => {
             const binaryString = window.atob(base64);
             const len = binaryString.length;
             const bytes = new Int16Array(len / 2);
-            for (let i = 0; i < len; i += 2) {
-                bytes[i / 2] = (binaryString.charCodeAt(i + 1) << 8) | binaryString.charCodeAt(i);
-            }
+            for (let i = 0; i < len; i += 2) bytes[i / 2] = (binaryString.charCodeAt(i + 1) << 8) | binaryString.charCodeAt(i);
             return bytes;
-        };
-
-        // --- SRT Generator (Estimation) ---
-        const formatTime = (seconds) => {
-            const date = new Date(0);
-            date.setMilliseconds(seconds * 1000);
-            return date.toISOString().substr(11, 12).replace('.', ',');
         };
 
         const generateSRT = (text, durationSeconds) => {
@@ -130,26 +184,25 @@
             const timePerWord = durationSeconds / words.length;
             let srtContent = "";
             let currentTime = 0;
+            const formatTime = (s) => new Date(s * 1000).toISOString().substr(11, 12).replace('.', ',');
             
-            // Group words into chunks of ~5 for subtitles
-            const chunkSize = 5;
+            const chunkSize = 6;
             for (let i = 0; i < words.length; i += chunkSize) {
                 const chunk = words.slice(i, i + chunkSize).join(" ");
                 const startTime = formatTime(currentTime);
                 currentTime += timePerWord * chunk.split(" ").length;
                 const endTime = formatTime(currentTime);
-                
                 srtContent += `${(i / chunkSize) + 1}\n${startTime} --> ${endTime}\n${chunk}\n\n`;
             }
             return srtContent;
         };
 
         // ------------------------------------------------------------------
-        // 2. MAIN APP COMPONENT
+        // 3. MAIN APP
         // ------------------------------------------------------------------
 
         function GeminiVoiceStudio() {
-            // -- State Management --
+            // State
             const [text, setText] = useState("");
             const [loading, setLoading] = useState(false);
             const [progress, setProgress] = useState(0);
@@ -157,37 +210,33 @@
             const [audioBlob, setAudioBlob] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
             const [history, setHistory] = useState([]);
-            const [darkMode, setDarkMode] = useState(true);
+            const [darkMode, setDarkMode] = useState(false);
             const [showHistory, setShowHistory] = useState(false);
             const [toast, setToast] = useState(null);
 
-            // -- Settings State --
+            // Settings
             const [voice, setVoice] = useState("Kore");
             const [contextMode, setContextMode] = useState("default");
+            const [emotion, setEmotion] = useState("neutral"); // New State
             const [speed, setSpeed] = useState(1.0);
             
             const audioRef = useRef(null);
-            // NOTE: In a real app, use a backend proxy. For demo, we use empty string or user provided key.
             const apiKey = ""; 
 
-            // -- Initialization --
+            // Init
             useEffect(() => {
                 const savedHistory = localStorage.getItem('gemini_voice_history');
                 if (savedHistory) setHistory(JSON.parse(savedHistory));
-                
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-                    setDarkMode(false);
-                }
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setDarkMode(true);
             }, []);
 
-            // Apply Dark Mode Class to Body
             useEffect(() => {
                 if (darkMode) {
-                    document.body.classList.add('dark');
-                    document.body.style.backgroundColor = '#0f172a'; // slate-900
+                    document.documentElement.classList.add('dark');
+                    document.body.style.backgroundColor = '#1a1614';
                 } else {
-                    document.body.classList.remove('dark');
-                    document.body.style.backgroundColor = '#f8fafc'; // slate-50
+                    document.documentElement.classList.remove('dark');
+                    document.body.style.backgroundColor = '#FAF9F6';
                 }
             }, [darkMode]);
 
@@ -198,7 +247,7 @@
 
             const handleGenerate = async () => {
                 if (!text.trim()) {
-                    showToast("Please enter some text first.", "error");
+                    showToast("Please write something on the paper.", "error");
                     return;
                 }
                 
@@ -207,8 +256,19 @@
                 setAudioUrl(null);
                 setAudioBlob(null);
 
+                // Advanced Prompt Engineering
                 const contextInstruction = CONTEXT_MODES[contextMode];
-                const finalPrompt = text; 
+                const selectedEmotion = EMOTIONS.find(e => e.id === emotion)?.label || "Neutral";
+                
+                // Construct system instruction combining context and emotion
+                const systemPrompt = `
+                    Task: Read the text as a professional voice actor.
+                    Voice Character: ${voice}.
+                    Role/Context: ${contextInstruction}
+                    Emotional Tone: ${selectedEmotion}.
+                    Pace: ${speed}x speed.
+                    Instruction: Fully embody the requested emotion and context.
+                `.trim();
 
                 try {
                     const fetchWithRetry = async (retries = 3, delay = 1000) => {
@@ -220,7 +280,8 @@
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                        contents: [{ parts: [{ text: finalPrompt }] }],
+                                        model: API_CONFIG.model,
+                                        contents: [{ parts: [{ text: text }] }],
                                         generationConfig: {
                                             responseModalities: ["AUDIO"],
                                             speechConfig: {
@@ -230,7 +291,7 @@
                                             }
                                         },
                                         systemInstruction: {
-                                            parts: [{ text: `${contextInstruction} Speaking rate: ${speed}x.` }]
+                                            parts: [{ text: systemPrompt }]
                                         }
                                     })
                                 }
@@ -251,8 +312,7 @@
                     setProgress(70);
 
                     const base64Audio = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-                    
-                    if (!base64Audio) throw new Error("No audio data received.");
+                    if (!base64Audio) throw new Error("No audio data.");
 
                     const pcmData = base64ToInt16Array(base64Audio);
                     const wavBlob = pcmToWav(pcmData);
@@ -261,7 +321,7 @@
                     setAudioBlob(wavBlob);
                     setAudioUrl(url);
                     setProgress(100);
-                    showToast("Audio generated successfully!");
+                    showToast("Voice generated successfully.");
 
                     const newEntry = {
                         id: Date.now(),
@@ -269,7 +329,8 @@
                         fullText: text,
                         date: new Date().toLocaleDateString(),
                         voice,
-                        mode: contextMode
+                        mode: contextMode,
+                        emotion: emotion
                     };
                     const updatedHistory = [newEntry, ...history].slice(0, 10);
                     setHistory(updatedHistory);
@@ -277,7 +338,7 @@
 
                 } catch (error) {
                     console.error(error);
-                    showToast("Failed to generate audio. Please check console/API Key.", "error");
+                    showToast("Generation failed. Please try again.", "error");
                 } finally {
                     setLoading(false);
                     setTimeout(() => setProgress(0), 1000);
@@ -286,9 +347,8 @@
 
             const handleDownload = (format) => {
                 if (!audioBlob) return;
-                const fileName = `voiceover-${Date.now()}`;
+                const fileName = `gemini-${voice}-${emotion}-${Date.now()}`;
                 const link = document.createElement('a');
-                
                 if (format === 'wav') {
                     link.href = audioUrl;
                     link.download = `${fileName}.wav`;
@@ -307,8 +367,9 @@
                 setText(item.fullText);
                 setVoice(item.voice);
                 setContextMode(item.mode);
+                setEmotion(item.emotion || "neutral");
                 setShowHistory(false);
-                showToast("Project loaded from history");
+                showToast("Draft restored.");
             };
 
             const deleteFromHistory = (id) => {
@@ -319,130 +380,156 @@
 
             const togglePlayback = () => {
                 if (!audioRef.current) return;
-                if (isPlaying) {
-                    audioRef.current.pause();
-                } else {
-                    audioRef.current.play();
-                }
+                isPlaying ? audioRef.current.pause() : audioRef.current.play();
                 setIsPlaying(!isPlaying);
             };
 
             return (
-                <div className={`min-h-screen font-sans ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                    {/* Toast Notification */}
+                <div className={`min-h-screen font-serif selection:bg-stone-300 selection:text-stone-900 dark:selection:bg-stone-700`}>
+                    {/* Toast */}
                     {toast && (
-                        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in ${
-                            toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'
+                        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-md shadow-xl flex items-center gap-3 animate-fade-in border ${
+                            toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-paper-100 border-paper-300 text-stone-800'
                         }`}>
                             {toast.type === 'error' ? <AlertCircle size={18}/> : <Check size={18}/>}
-                            {toast.message}
+                            <span className="font-medium text-sm">{toast.message}</span>
                         </div>
                     )}
 
                     {/* Header */}
-                    <header className={`px-6 py-4 flex justify-between items-center border-b ${darkMode ? 'border-slate-700 bg-slate-900/95' : 'border-slate-200 bg-white/95'} sticky top-0 z-40 backdrop-blur`}>
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                G
+                    <header className={`px-6 py-5 flex justify-between items-center sticky top-0 z-40 backdrop-blur-sm transition-colors duration-500
+                        ${darkMode ? 'bg-[#1a1614]/90 border-b border-stone-800' : 'bg-paper-50/90 border-b border-paper-200'}
+                    `}>
+                        <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded flex items-center justify-center border ${
+                                darkMode ? 'bg-stone-800 border-stone-700 text-stone-300' : 'bg-white border-paper-300 text-stone-600 shadow-sm'
+                            }`}>
+                                <PenTool size={18} strokeWidth={1.5} />
                             </div>
-                            <h1 className="text-xl font-bold tracking-tight">Gemini<span className="text-indigo-500">Voice</span> Studio</h1>
+                            <div>
+                                <h1 className="text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">Gemini<span className="italic font-serif font-normal text-stone-500">Voice</span></h1>
+                            </div>
                         </div>
                         
-                        <div className="flex items-center gap-3">
-                            <button 
-                                onClick={() => setShowHistory(!showHistory)}
-                                className={`p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition relative ${showHistory ? 'text-indigo-500' : ''}`}
-                            >
-                                <History size={20} />
-                                {history.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>}
+                        <div className="flex items-center gap-2">
+                             <div className={`hidden md:flex px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border items-center gap-1.5 mr-2 ${
+                                darkMode ? 'border-emerald-900 bg-emerald-900/20 text-emerald-400' : 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                            }`}>
+                                <Zap size={12} className="fill-current" />
+                                <span>Auto-Key Active</span>
+                            </div>
+                            <button onClick={() => setShowHistory(!showHistory)} className="p-2.5 rounded hover:bg-paper-200 dark:hover:bg-stone-800 transition relative text-stone-600 dark:text-stone-400">
+                                <History size={20} strokeWidth={1.5} />
+                                {history.length > 0 && <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-amber-600 rounded-full"></span>}
                             </button>
-                            <button 
-                                onClick={() => setDarkMode(!darkMode)}
-                                className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition"
-                            >
-                                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+                            <button onClick={() => setDarkMode(!darkMode)} className="p-2.5 rounded hover:bg-paper-200 dark:hover:bg-stone-800 transition text-stone-600 dark:text-stone-400">
+                                {darkMode ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
                             </button>
                         </div>
                     </header>
 
-                    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-6xl">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <main className="container mx-auto p-4 md:p-8 max-w-6xl">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             
-                            {/* Left Panel: Inputs */}
+                            {/* Inputs Panel */}
                             <div className="lg:col-span-7 space-y-6">
-                                <div className={`p-1 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 ${loading ? 'animate-pulse' : ''}`}>
-                                    <div className={`rounded-lg p-4 h-full ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
-                                        <div className="flex justify-between mb-2">
-                                            <label className="text-sm font-medium flex items-center gap-2 text-indigo-500">
-                                                <FileText size={16} /> Script
-                                            </label>
-                                            <span className="text-xs text-slate-400">{text.length} chars</span>
+                                {/* Paper Input */}
+                                <div className="relative group">
+                                    <div className={`absolute top-1 left-1 right-[-4px] bottom-[-4px] rounded border transition-colors duration-500 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-paper-200 border-paper-300'}`}></div>
+                                    <div className={`relative z-10 rounded border transition-colors duration-500 overflow-hidden shadow-sm ${darkMode ? 'bg-[#25201d] border-stone-700' : 'bg-white border-paper-200'}`}>
+                                        <div className={`px-6 py-3 border-b flex justify-between items-center ${darkMode ? 'border-stone-700 bg-stone-900/30' : 'border-paper-100 bg-paper-50'}`}>
+                                            <label className="text-xs font-bold tracking-widest uppercase text-stone-400 flex items-center gap-2"><FileText size={14} /> Script Editor</label>
+                                            <span className="text-xs font-mono text-stone-400">{text.length} chars</span>
                                         </div>
-                                        <textarea
-                                            value={text}
-                                            onChange={(e) => setText(e.target.value)}
-                                            placeholder="Enter your script here..."
-                                            className={`w-full h-64 p-3 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-transparent font-mono text-sm leading-relaxed ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}
-                                            spellCheck="false"
-                                        />
+                                        <div className="p-6">
+                                            <textarea
+                                                value={text}
+                                                onChange={(e) => setText(e.target.value)}
+                                                placeholder="Type your script here..."
+                                                className={`w-full h-80 resize-none focus:outline-none bg-transparent font-mono text-base leading-8 lined-paper ${darkMode ? 'text-stone-300 placeholder-stone-600' : 'text-stone-700 placeholder-stone-400'}`}
+                                                spellCheck="false"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className={`p-6 rounded-xl border ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Settings size={18} className="text-indigo-500" />
-                                        <h2 className="font-semibold">Voice Settings</h2>
+                                {/* Controls */}
+                                <div className={`p-6 rounded border transition-colors duration-500 ${darkMode ? 'bg-[#25201d] border-stone-700' : 'bg-white border-paper-200 shadow-sm'}`}>
+                                    <div className="flex items-center gap-2 mb-6 text-stone-500 border-b border-inherit pb-4">
+                                        <Settings size={18} />
+                                        <h2 className="text-sm font-bold uppercase tracking-widest">Voice Configuration</h2>
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-6">
+                                        {/* Row 1: Voice Persona */}
                                         <div>
-                                            <label className="block text-xs uppercase tracking-wide opacity-70 mb-2">Persona</label>
-                                            <div className="grid grid-cols-2 gap-2">
+                                            <label className="block text-xs uppercase tracking-wide text-stone-500 mb-3">Narrator Persona</label>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                                 {VOICES.map((v) => (
                                                     <button
                                                         key={v.name}
                                                         onClick={() => setVoice(v.name)}
-                                                        className={`px-3 py-2 rounded-lg text-sm flex flex-col items-start border transition-all ${
+                                                        className={`px-3 py-2 text-left border rounded transition-all duration-300 ${
                                                             voice === v.name 
-                                                            ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500' 
-                                                            : darkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-200 hover:bg-slate-50'
+                                                            ? (darkMode ? 'border-stone-500 bg-stone-800 text-stone-200' : 'border-stone-800 bg-stone-800 text-stone-100')
+                                                            : (darkMode ? 'border-stone-700 text-stone-500 hover:border-stone-500' : 'border-paper-300 text-stone-500 hover:border-stone-400 hover:bg-paper-50')
                                                         }`}
                                                     >
-                                                        <span className="font-medium">{v.name}</span>
-                                                        <span className="text-xs opacity-60">{v.gender} • {v.style}</span>
+                                                        <span className="block font-serif font-medium text-sm">{v.name}</span>
+                                                        <span className="block text-[10px] opacity-70 mt-0.5">{v.desc}</span>
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-xs uppercase tracking-wide opacity-70 mb-2">Context Mode</label>
-                                            <div className="space-y-2">
-                                                <select 
-                                                    value={contextMode}
-                                                    onChange={(e) => setContextMode(e.target.value)}
-                                                    className={`w-full p-2 rounded-lg border ${darkMode ? 'bg-slate-900 border-slate-600' : 'bg-slate-50 border-slate-200'}`}
-                                                >
-                                                    {Object.keys(CONTEXT_MODES).map(mode => (
-                                                        <option key={mode} value={mode}>{mode.charAt(0).toUpperCase() + mode.slice(1)}</option>
-                                                    ))}
-                                                </select>
-                                                <p className="text-xs opacity-60 italic p-1">
-                                                    "{CONTEXT_MODES[contextMode].substring(0, 60)}..."
-                                                </p>
+                                        {/* Row 2: Context & Emotion */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-xs uppercase tracking-wide text-stone-500 mb-3">Context / Scenario</label>
+                                                <div className="relative">
+                                                    <select 
+                                                        value={contextMode}
+                                                        onChange={(e) => setContextMode(e.target.value)}
+                                                        className={`w-full p-2.5 rounded border appearance-none font-serif text-sm focus:outline-none focus:ring-1 focus:ring-stone-400 transition-colors ${
+                                                            darkMode ? 'bg-stone-900 border-stone-700 text-stone-300' : 'bg-paper-50 border-paper-300 text-stone-700'
+                                                        }`}
+                                                    >
+                                                        {Object.entries(CONTEXT_MODES).map(([key, desc]) => (
+                                                            <option key={key} value={key}>{key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</option>
+                                                        ))}
+                                                    </select>
+                                                    <Layers size={14} className="absolute right-3 top-3 opacity-50 pointer-events-none"/>
+                                                </div>
+                                                <p className="mt-2 text-[10px] text-stone-400 leading-tight h-8 overflow-hidden">{CONTEXT_MODES[contextMode]}</p>
                                             </div>
-                                            <div className="mt-4">
-                                                <label className="block text-xs uppercase tracking-wide opacity-70 mb-2">Speaking Pace</label>
-                                                <input 
-                                                    type="range" min="0.5" max="2" step="0.1" 
-                                                    value={speed}
-                                                    onChange={(e) => setSpeed(e.target.value)}
-                                                    className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                                                />
-                                                <div className="flex justify-between text-xs opacity-60 mt-1">
-                                                    <span>Slow</span>
-                                                    <span>{speed}x</span>
-                                                    <span>Fast</span>
+
+                                            <div>
+                                                <label className="block text-xs uppercase tracking-wide text-stone-500 mb-3">Emotional Tone</label>
+                                                <div className="relative">
+                                                    <select 
+                                                        value={emotion}
+                                                        onChange={(e) => setEmotion(e.target.value)}
+                                                        className={`w-full p-2.5 rounded border appearance-none font-serif text-sm focus:outline-none focus:ring-1 focus:ring-stone-400 transition-colors ${
+                                                            darkMode ? 'bg-stone-900 border-stone-700 text-stone-300' : 'bg-paper-50 border-paper-300 text-stone-700'
+                                                        }`}
+                                                    >
+                                                        {EMOTIONS.map(e => (
+                                                            <option key={e.id} value={e.id}>{e.label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="absolute right-3 top-3 opacity-50 pointer-events-none">
+                                                        {EMOTIONS.find(e=>e.id===emotion)?.icon}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4 flex items-center gap-3">
+                                                     <span className="text-[10px] uppercase text-stone-400 w-12">Speed</span>
+                                                     <input 
+                                                        type="range" min="0.5" max="2" step="0.1" 
+                                                        value={speed}
+                                                        onChange={(e) => setSpeed(e.target.value)}
+                                                        className={`flex-1 h-1 rounded-lg appearance-none cursor-pointer ${darkMode ? 'bg-stone-700 accent-stone-400' : 'bg-paper-200 accent-stone-800'}`}
+                                                    />
+                                                    <span className="text-[10px] font-mono text-stone-400 w-8 text-right">{speed}x</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -450,83 +537,93 @@
                                 </div>
                             </div>
 
-                            {/* Right Panel */}
+                            {/* Output Panel */}
                             <div className="lg:col-span-5 space-y-6">
-                                <div className={`rounded-xl overflow-hidden border ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                                    <div className="p-6 text-center border-b border-inherit">
+                                <div className={`rounded overflow-hidden border transition-colors duration-500 shadow-sm ${darkMode ? 'bg-[#25201d] border-stone-700' : 'bg-white border-paper-200'}`}>
+                                    <div className={`p-8 text-center border-b border-dashed ${darkMode ? 'border-stone-800' : 'border-paper-200'}`}>
                                         {loading ? (
-                                            <div className="py-10 flex flex-col items-center justify-center space-y-4">
-                                                <Loader2 size={40} className="animate-spin text-indigo-500" />
-                                                <p className="text-sm font-medium animate-pulse">Synthesizing audio...</p>
-                                                <div className="w-64 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                                            <div className="py-12 flex flex-col items-center justify-center space-y-6">
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 bg-paper-200 dark:bg-stone-700 rounded-full animate-ping opacity-20"></div>
+                                                    <Loader2 size={32} className={`animate-spin ${darkMode ? 'text-stone-400' : 'text-stone-600'}`} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <p className="text-sm font-medium animate-pulse font-serif italic text-stone-500">Processing audio...</p>
+                                                    <div className="w-48 h-1 mx-auto bg-paper-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                                                        <div className={`h-full transition-all duration-300 ${darkMode ? 'bg-stone-500' : 'bg-stone-800'}`} style={{ width: `${progress}%` }}></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ) : audioUrl ? (
                                             <div className="py-6 flex flex-col items-center animate-fade-in">
-                                                <div className="w-24 h-24 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4 text-indigo-500 relative">
-                                                    <div className={`absolute inset-0 rounded-full border-2 border-indigo-500 ${isPlaying ? 'animate-ping opacity-20' : 'opacity-0'}`}></div>
-                                                    <FileAudio size={40} />
+                                                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 relative border ${darkMode ? 'bg-stone-800/50 border-stone-700 text-stone-300' : 'bg-paper-50 border-paper-200 text-stone-700'}`}>
+                                                    <div className={`absolute inset-0 rounded-full border ${darkMode ? 'border-stone-500' : 'border-stone-400'} ${isPlaying ? 'animate-ping opacity-10' : 'opacity-0'}`}></div>
+                                                    <Speaker size={24} strokeWidth={1} />
                                                 </div>
-                                                <h3 className="text-lg font-bold mb-1">Ready to play</h3>
-                                                <p className="text-sm opacity-60 mb-6">{VOICES.find(v=>v.name === voice)?.style} Voice • {contextMode}</p>
                                                 
-                                                <audio 
-                                                    ref={audioRef} 
-                                                    src={audioUrl} 
-                                                    onEnded={() => setIsPlaying(false)}
-                                                    onPlay={() => setIsPlaying(true)}
-                                                    onPause={() => setIsPlaying(false)}
-                                                    className="hidden"
-                                                />
+                                                <h3 className="text-xl font-serif font-medium mb-1 text-stone-800 dark:text-stone-200">Audio Ready</h3>
+                                                <div className="flex flex-col items-center gap-1 mb-8">
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-stone-400">{voice} • {emotion}</span>
+                                                    <span className="text-[10px] text-stone-500 opacity-70">{contextMode.replace('_', ' ')}</span>
+                                                </div>
                                                 
-                                                <div className="flex gap-4 w-full justify-center">
+                                                <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} className="hidden"/>
+                                                
+                                                <div className="flex flex-col w-full gap-3 px-8">
                                                     <button 
                                                         onClick={togglePlayback}
-                                                        className="flex-1 max-w-[140px] bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition shadow-lg shadow-indigo-500/20"
+                                                        className={`w-full py-3 rounded flex items-center justify-center gap-3 transition shadow-sm font-medium tracking-wide uppercase text-xs ${darkMode ? 'bg-paper-200 text-stone-900 hover:bg-white' : 'bg-stone-800 text-stone-100 hover:bg-stone-700'}`}
                                                     >
-                                                        {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                                                        {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                                                         {isPlaying ? 'Pause' : 'Play'}
                                                     </button>
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => handleDownload('wav')} className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" title="Download WAV"><Download size={20} /></button>
-                                                        <button onClick={() => handleDownload('srt')} className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" title="Export SRT"><FileText size={20} /></button>
+                                                    <div className="flex gap-3">
+                                                        <button onClick={() => handleDownload('wav')} className={`flex-1 py-2.5 border rounded flex items-center justify-center gap-2 text-xs uppercase tracking-wide transition ${darkMode ? 'border-stone-700 hover:bg-stone-800' : 'border-paper-300 hover:bg-paper-50'}`}>
+                                                            <Download size={16} /> WAV
+                                                        </button>
+                                                        <button onClick={() => handleDownload('srt')} className={`flex-1 py-2.5 border rounded flex items-center justify-center gap-2 text-xs uppercase tracking-wide transition ${darkMode ? 'border-stone-700 hover:bg-stone-800' : 'border-paper-300 hover:bg-paper-50'}`}>
+                                                            <FileText size={16} /> SRT
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="py-12 flex flex-col items-center text-slate-400">
-                                                <Mic size={48} className="mb-4 opacity-50" />
-                                                <p>Ready to generate voice over</p>
+                                            <div className="py-16 flex flex-col items-center text-stone-400 dark:text-stone-600">
+                                                <div className="p-4 rounded-full border border-dashed border-inherit mb-4 opacity-50">
+                                                    <Mic size={24} strokeWidth={1.5} />
+                                                </div>
+                                                <p className="font-serif italic opacity-70 text-sm">"Select a persona & emotion..."</p>
                                             </div>
                                         )}
                                     </div>
-
-                                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50">
+                                    <div className={`p-4 ${darkMode ? 'bg-stone-900/50' : 'bg-paper-50'}`}>
                                         <button
                                             onClick={handleGenerate}
                                             disabled={loading || !text.trim()}
-                                            className={`w-full py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.01] active:scale-[0.99]
-                                                ${loading || !text.trim() ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25'}`}
+                                            className={`w-full py-3.5 rounded font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5
+                                                ${loading || !text.trim() ? 'bg-paper-200 dark:bg-stone-800 text-stone-400 cursor-not-allowed' : darkMode ? 'bg-amber-700 hover:bg-amber-600 text-stone-100 shadow-lg shadow-amber-900/20' : 'bg-stone-800 hover:bg-stone-700 text-white shadow-lg shadow-stone-400/20'}`}
                                         >
-                                            {loading ? 'Processing...' : <><RefreshCw size={20} /> Generate Voice Over</>}
+                                            {loading ? 'Synthesizing...' : <><RefreshCw size={16} /> Generate Voice</>}
                                         </button>
                                     </div>
                                 </div>
 
                                 {showHistory && (
-                                    <div className={`rounded-xl border overflow-hidden animate-slide-up ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                        <div className="p-4 border-b border-inherit bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-                                            <h3 className="font-semibold flex items-center gap-2"><History size={16}/> Recent Projects</h3>
+                                    <div className={`rounded border overflow-hidden animate-slide-up ${darkMode ? 'bg-[#25201d] border-stone-700' : 'bg-white border-paper-200'}`}>
+                                        <div className={`p-4 border-b flex justify-between items-center ${darkMode ? 'border-stone-700 bg-stone-900/30' : 'border-paper-100 bg-paper-50'}`}>
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-stone-500 flex items-center gap-2"><History size={14}/> Archives</h3>
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto p-2">
-                                            {history.length === 0 ? <p className="text-center text-sm opacity-50 py-8">No history.</p> : history.map(item => (
-                                                <div key={item.id} className="p-3 mb-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 group transition flex justify-between items-start cursor-pointer" onClick={() => loadFromHistory(item)}>
+                                            {history.length === 0 ? <p className="text-center text-sm font-serif italic text-stone-400 py-8">No saved drafts.</p> : history.map(item => (
+                                                <div key={item.id} className={`p-3 mb-2 rounded border border-transparent hover:border-paper-200 dark:hover:border-stone-700 group transition flex justify-between items-start cursor-pointer ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-paper-50'}`} onClick={() => loadFromHistory(item)}>
                                                     <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-1"><span className="text-xs font-bold text-indigo-500 uppercase">{item.voice}</span><span className="text-xs opacity-50">{item.mode}</span></div>
-                                                        <p className="text-sm line-clamp-2 opacity-80">{item.text}</p>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${darkMode ? 'bg-stone-800 text-stone-400' : 'bg-paper-200 text-stone-600'}`}>{item.voice}</span>
+                                                            <span className="text-[10px] uppercase text-stone-400 opacity-70">{item.emotion || 'neutral'}</span>
+                                                        </div>
+                                                        <p className="text-sm font-mono opacity-80 line-clamp-2 mt-1">{item.text}</p>
                                                     </div>
-                                                    <button onClick={(e) => { e.stopPropagation(); deleteFromHistory(item.id); }} className="p-1 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100"><Trash2 size={16} /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); deleteFromHistory(item.id); }} className="p-1.5 text-stone-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><Trash2 size={14} /></button>
                                                 </div>
                                             ))}
                                         </div>
@@ -535,14 +632,11 @@
                             </div>
                         </div>
                     </main>
-                    <footer className="text-center py-6 text-xs opacity-30">Powered by Google Gemini 2.5 Flash TTS</footer>
+                    <footer className="text-center py-8 text-xs font-serif italic text-stone-400">Crafted with Gemini 2.5 TTS</footer>
                 </div>
             );
         }
 
-        // ------------------------------------------------------------------
-        // 3. MOUNT APPLICATION
-        // ------------------------------------------------------------------
         const root = createRoot(document.getElementById('root'));
         root.render(<GeminiVoiceStudio />);
     </script>
